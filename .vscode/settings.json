@@ -1,0 +1,12 @@
+{
+    "files.associations": {
+        "*.tpl": "html",
+        "socket.h": "c",
+        "stdio.h": "c",
+        "pcap.h": "c",
+        "if_ether.h": "c",
+        "inet.h": "c",
+        "if_dl.h": "c",
+        "memory": "c"
+    }
+}
