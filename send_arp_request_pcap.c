@@ -1,4 +1,4 @@
-#include <pcap/pcap.h> //libpcap header file
+#include <pcap.h> //libpcap header file
 
 #include <stdio.h> //printf; fprintf
 #include <stdlib.h> //memcpy; exit; perror
@@ -57,7 +57,7 @@ int main(int argc, char **argv)
         exit(1);
     }
 
-    //打开一个socket准备发送ARP请求
+    //打开一个socket
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd == -1) {
         perror(0);

@@ -33,8 +33,6 @@ void print_all_deives()
     pcap_freealldevs(devices);
 };
 
-/// 获取本机默认设备接口
-/// \return *pcap_if_t
 pcap_if_t *get_default_dev()
 {
     char pcap_errbuf[PCAP_ERRBUF_SIZE] = {'\n'};

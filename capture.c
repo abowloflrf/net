@@ -11,10 +11,10 @@
 
 int main(int argc, char *argv[])
 {
-    char errbuf[PCAP_ERRBUF_SIZE] = {'\n'};
+    char errbuf[PCAP_ERRBUF_SIZE] = {'\0'};
     pcap_if_t *dev;
-    struct bpf_program fp;        /* The compiled filter expression */
-    char filter_exp[] = "arp && ether src 9c:b6:d0:d3:b8:5d";    /* The filter expression */
+    struct bpf_program fp;
+    char filter_exp[] = "arp && ether src 9c:b6:d0:d3:b8:5d";    //过滤表达式，这里过滤的是源地址为开发机器(DELL XPS13)的ARP数据包
 
     //直接获取默认设备
     dev = get_default_dev();
