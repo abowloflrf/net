@@ -5,15 +5,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <pcap.h>
-#include <netinet/in.h> //ntohs
-#include <arpa/inet.h>  //inet_ntoa
-#include <net/ethernet.h> //ETHERTYPE_ARP ether_header
-#include <time.h>
-#include <netinet/if_ether.h> //ether_arp <net/ethernet.h>
 
 #include "packet_printer.h"
 #include "device.h"
-
 
 int main(int argc, char *argv[])
 {

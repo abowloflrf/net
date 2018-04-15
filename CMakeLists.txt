@@ -6,7 +6,7 @@ set(CMAKE_CXX_COMPILER "g++")
 # 根目录
 aux_source_directory(. DIR_MAIN)
 
-add_executable(SendArpRequestSocket send_arp_request_socket.c)
+#add_executable(SendArpRequestSocket send_arp_request_socket.c)
 
 add_executable(SendArpRequestPcap send_arp_request_pcap.c)
 target_link_libraries(SendArpRequestPcap pcap)
