@@ -1,39 +1,35 @@
-#include <pcap/pcap.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <pcap/pcap.h> //libpcap header file
+
+#include <stdio.h> //printf; fprintf
+#include <stdlib.h> //memcpy; exit; perror
 #include <string.h>
 
-#include <arpa/inet.h>  //htons: converts the unsigned short integer hostshort from host byte order to network byte order.
+#include <arpa/inet.h>  //htons function; in_addr; inet_aton
 #include <net/ethernet.h>  //struct ether_header
-#include <net/if.h>
+#include <net/if.h> //ifreq struct
 #include <netinet/ether.h>
-#include <netinet/if_ether.h>
+#include <netinet/if_ether.h> //struct ether_arp
+#include <sys/socket.h> //socket
 #include <sys/ioctl.h>
-#include <unistd.h>  // close()
 
-int main(int argc, char** argv) {
-    if (argc < 2) {
-        printf("Please choose an interface using: ./a.out en0");
+int main(int argc, char **argv)
+{
+    //必须接受两个参数，接口名称与需要寻找物理地址的IP地址
+    if (argc < 3) {
+        printf("Usage: ./Program <interface> <ip addr>\n");
         exit(1);
     }
-    const char* if_name = argv[1];
-    const char* target_ip_string = argv[2];
-    // char pcap_errbuf[PCAP_ERRBUF_SIZE];
-
-    // pcap_t* pcap = pcap_open_live(if_name, 96, 0, 0, pcap_errbuf);
-    // if (pcap_errbuf[0] != '\0') {
-    //     fprintf(stderr, "%s", pcap_errbuf);
-    // }
-    // if (!pcap) {
-    //     exit(1);
-    // }
+    //参数1-接口名，从这个接口发出ARP请求
+    const char *if_name = argv[1];
+    //参数2-ARP请求的IP地址
+    const char *target_ip_string = argv[2];
 
     //构造以太帧头部
     struct ether_header header;
     header.ether_type = htons(ETH_P_ARP);
     memset(header.ether_dhost, 0xff, sizeof(header.ether_dhost));
 
-    // Construct ARP request (except for MAC and IP addresses).
+    //构造ARP请求
     struct ether_arp req;
     req.arp_hrd = htons(ARPHRD_ETHER);
     req.arp_pro = htons(ETH_P_IP);
@@ -42,67 +38,66 @@ int main(int argc, char** argv) {
     req.arp_op = htons(ARPOP_REQUEST);
     memset(&req.arp_tha, 0, sizeof(req.arp_tha));
 
-    // Convert target IP address from string, copy into ARP request.
+    //将字符串形式的IP转化为指定结构体，并写入到请求帧结构体中
     struct in_addr target_ip_addr = {0};
     if (!inet_aton(target_ip_string, &target_ip_addr)) {
-        fprintf(stderr, "%s is not a valid IP address", target_ip_string);
+        fprintf(stderr, "%s is not a valid IP address\n", target_ip_string);
         exit(1);
     }
     memcpy(&req.arp_tpa, &target_ip_addr.s_addr, sizeof(req.arp_tpa));
-    // Write the interface name to an ifreq structure,
-    // for obtaining the source MAC and IP addresses.
+    //将接口名写入请求帧结构体
     struct ifreq ifr;
     size_t if_name_len = strlen(if_name);
     if (if_name_len < sizeof(ifr.ifr_name)) {
         memcpy(ifr.ifr_name, if_name, if_name_len);
         ifr.ifr_name[if_name_len] = 0;
-    } else {
-        fprintf(stderr, "interface name is too long");
+    }
+    else {
+        fprintf(stderr, "Interface name is too long");
         exit(1);
     }
 
-    // Open an IPv4-family socket for use when calling ioctl.
+    //打开一个socket准备发送ARP请求
     int fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd == -1) {
         perror(0);
         exit(1);
     }
 
-    // Obtain the source IP address, copy into ARP request
+    //将源IP地址写入请求
     if (ioctl(fd, SIOCGIFADDR, &ifr) == -1) {
         perror(0);
-        close(fd);
+        shutdown(fd, SHUT_RDWR);//使用shutdown关闭socket连接，第二个参数：停止接受数据，写数据，或都停止
         exit(1);
     }
-    struct sockaddr_in* source_ip_addr = (struct sockaddr_in*)&ifr.ifr_addr;
+    struct sockaddr_in *source_ip_addr = (struct sockaddr_in *) &ifr.ifr_addr;
     memcpy(&req.arp_spa, &source_ip_addr->sin_addr.s_addr, sizeof(req.arp_spa));
 
-    // Obtain the source MAC address, copy into Ethernet header and ARP request.
+    //将源MAC地址写入请求，SIOCGIFHWADDR指令为获取硬件地址
     if (ioctl(fd, SIOCGIFHWADDR, &ifr) == -1) {
         perror(0);
-        close(fd);
+        shutdown(fd, SHUT_RDWR);
         exit(1);
     }
     if (ifr.ifr_hwaddr.sa_family != ARPHRD_ETHER) {
-        fprintf(stderr, "not an Ethernet interface");
-        close(fd);
+        fprintf(stderr, "Not an Ethernet interface");
+        shutdown(fd, SHUT_RDWR);
         exit(1);
     }
-    const unsigned char* source_mac_addr =
-        (unsigned char*)ifr.ifr_hwaddr.sa_data;
+    const unsigned char *source_mac_addr = (unsigned char *) ifr.ifr_hwaddr.sa_data;
     memcpy(header.ether_shost, source_mac_addr, sizeof(header.ether_shost));
     memcpy(&req.arp_sha, source_mac_addr, sizeof(req.arp_sha));
-    close(fd);
+    shutdown(fd, SHUT_RDWR);//关闭socket，不需要再使用
 
-    // Combine the Ethernet header and ARP request into a contiguous block.
-    unsigned char frame[sizeof(struct ether_header) + sizeof(struct ether_arp)];
-    memcpy(frame, &header, sizeof(struct ether_header));
-    memcpy(frame + sizeof(struct ether_header), &req, sizeof(struct ether_arp));
+    //将以太帧头部与ARP请求组合成完整请求，ether_header+ether_arp=frame
+    unsigned char frame[sizeof(struct ether_header) + sizeof(struct ether_arp)]; //定义请求空间大小
+    memcpy(frame, &header, sizeof(struct ether_header));                         //先组合以太帧头部
+    memcpy(frame + sizeof(struct ether_header), &req, sizeof(struct ether_arp)); //再组合arp请求
 
-    // Open a PCAP packet capture descriptor for the specified interface.
+    //对相应的网络接口打开一个PCAP实例
     char pcap_errbuf[PCAP_ERRBUF_SIZE];
     pcap_errbuf[0] = '\0';
-    pcap_t* pcap = pcap_open_live(if_name, 96, 0, 0, pcap_errbuf);
+    pcap_t *pcap = pcap_open_live(if_name, BUFSIZ, 1, 1000, pcap_errbuf);
     if (pcap_errbuf[0] != '\0') {
         fprintf(stderr, "%s\n", pcap_errbuf);
     }
@@ -110,12 +105,16 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
-    // Write the Ethernet frame to the interface.
+    //将以太帧写入接口完成发包
     if (pcap_inject(pcap, frame, sizeof(frame)) == -1) {
         pcap_perror(pcap, 0);
         pcap_close(pcap);
         exit(1);
     }
+    else {
+        fprintf(stdout, "Send an ARP broadcast to get mac address who's IP address is %s.\n", target_ip_string);
+    }
+
     //关闭接口
     pcap_close(pcap);
     return 0;

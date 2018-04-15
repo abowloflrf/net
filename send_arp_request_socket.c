@@ -37,9 +37,10 @@
 
 #include <errno.h>  // errno, perror()
 
-// Define a struct for ARP header
+//ARP结构定义
 typedef struct _arp_hdr arp_hdr;
-struct _arp_hdr {
+typedef struct _arp_hdr
+{
     uint16_t htype;
     uint16_t ptype;
     uint8_t hlen;
@@ -61,7 +62,8 @@ struct _arp_hdr {
 char *allocate_strmem(int);
 uint8_t *allocate_ustrmem(int);
 
-int main(int argc, char **argv) {
+int main(int argc, char **argv)
+{
     int i, status, frame_length, sd, bytes;
     char *interface, *target, *src_ip;
     arp_hdr arphdr;
@@ -116,16 +118,15 @@ int main(int argc, char **argv) {
     }
     printf("Index for interface %s is %i\n", interface, device.sll_ifindex);
 
-    // Set destination MAC address: broadcast address
+    //目的MAC地址，这里设置为广播地址
     memset(dst_mac, 0xff, 6 * sizeof(uint8_t));
 
-    // Source IPv4 address:  you need to fill this out
+    //伪造的源IP地址
     strcpy(src_ip, "192.168.1.116");
 
-    // Destination URL or IPv4 address (must be a link-local node): you need to
-    // fill this out
+    //伪造的目的IP地址
     strcpy(target, "1.1.1.1");
-    
+
     // Fill out hints for getaddrinfo().
     memset(&hints, 0, sizeof(struct addrinfo));
     hints.ai_family = AF_INET;
@@ -145,7 +146,7 @@ int main(int argc, char **argv) {
         fprintf(stderr, "getaddrinfo() failed: %s\n", gai_strerror(status));
         exit(EXIT_FAILURE);
     }
-    ipv4 = (struct sockaddr_in *)res->ai_addr;
+    ipv4 = (struct sockaddr_in *) res->ai_addr;
     memcpy(&arphdr.target_ip, &ipv4->sin_addr, 4 * sizeof(uint8_t));
     freeaddrinfo(res);
 
@@ -211,7 +212,7 @@ int main(int argc, char **argv) {
 
     // Send ethernet frame to socket.
     if ((bytes = sendto(sd, ether_frame, frame_length, 0,
-                        (struct sockaddr *)&device, sizeof(device))) <= 0) {
+                        (struct sockaddr *) &device, sizeof(device))) <= 0) {
         perror("sendto() failed");
         exit(EXIT_FAILURE);
     }
@@ -231,7 +232,8 @@ int main(int argc, char **argv) {
 }
 
 // Allocate memory for an array of chars.
-char *allocate_strmem(int len) {
+char *allocate_strmem(int len)
+{
     void *tmp;
 
     if (len <= 0) {
@@ -242,11 +244,12 @@ char *allocate_strmem(int len) {
         exit(EXIT_FAILURE);
     }
 
-    tmp = (char *)malloc(len * sizeof(char));
+    tmp = (char *) malloc(len * sizeof(char));
     if (tmp != NULL) {
         memset(tmp, 0, len * sizeof(char));
         return (tmp);
-    } else {
+    }
+    else {
         fprintf(stderr,
                 "ERROR: Cannot allocate memory for array allocate_strmem().\n");
         exit(EXIT_FAILURE);
@@ -254,7 +257,8 @@ char *allocate_strmem(int len) {
 }
 
 // Allocate memory for an array of unsigned chars.
-uint8_t *allocate_ustrmem(int len) {
+uint8_t *allocate_ustrmem(int len)
+{
     void *tmp;
 
     if (len <= 0) {
@@ -265,11 +269,12 @@ uint8_t *allocate_ustrmem(int len) {
         exit(EXIT_FAILURE);
     }
 
-    tmp = (uint8_t *)malloc(len * sizeof(uint8_t));
+    tmp = (uint8_t *) malloc(len * sizeof(uint8_t));
     if (tmp != NULL) {
         memset(tmp, 0, len * sizeof(uint8_t));
         return (tmp);
-    } else {
+    }
+    else {
         fprintf(
             stderr,
             "ERROR: Cannot allocate memory for array allocate_ustrmem().\n");
