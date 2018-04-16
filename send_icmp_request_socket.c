@@ -4,6 +4,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef __APPLE__
+#include <netinet/in_systm.h>
+#include <netinet/ip.h>
+#endif
+
 #include <netinet/ip_icmp.h>
 #include <arpa/inet.h> //inet_pton
 #include <unistd.h>  //getpid
@@ -52,6 +58,7 @@ struct icmp *fill_icmp_packet(uint16_t icmp_sequ, char *msg)
     int msglen = (int) strlen(msg);                 //要发送的信息长度
     memcpy(sendbuf + 8, msg, (size_t) msglen + 1);  //在icmp必须的8字节之后填入要发送的信息
     icmp->icmp_cksum = check_sum((unsigned short *) icmp, ICMP_MINLEN + msglen + 1);    //填充校验和
+    return icmp;
 }
 
 int main(int argc, char **argv)
