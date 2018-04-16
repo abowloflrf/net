@@ -15,7 +15,7 @@ All excutable binary files built from CMakeLists.txt
 Capture ARP/TCP/ICMP requests(TCP and ICMP packet parser is not completed yet).
 
 ```
-sudo ./Capture
+sudo ./Main --capture
 ```
 
 ### SendArpRequestPcap
@@ -23,7 +23,7 @@ sudo ./Capture
 Send an ARP broadcast request from a specified device interface to get the MAC address who holds the IP address.
 
 ```
-sudo ./SendArpRequestPcap <device interface> <ip addr>
+sudo ./Main --arp --dev <device interface> --target <ip addr>
 ```
 
 ### SendIcmpRequestSocket
@@ -31,5 +31,5 @@ sudo ./SendArpRequestPcap <device interface> <ip addr>
 Send ICMP echo request with custom data string.
 
 ```
-sudo ./SendIcmpRequestSocket <ip addr> <data>
+sudo ./Main --target <ip addr> --msg <data>
 ```

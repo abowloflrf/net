@@ -18,3 +18,5 @@ add_executable(SendIcmpRequestSocket send_icmp_request_socket.c)
 
 add_executable(Capture capture.c device.c packet_printer.c)
 target_link_libraries(Capture pcap)
+
+add_executable(Main main.c)
