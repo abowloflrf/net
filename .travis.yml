@@ -2,6 +2,9 @@ language: c
 
 dist: trusty
 
+before_install:
+  - sudo apt-get install -q libpcap-dev
+
 compiler:
   - clang
   - gcc
