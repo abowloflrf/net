@@ -28,3 +28,5 @@ void ethhdr_printer(struct ether_header *);
 void arp_printer(struct ether_arp *);
 
 #endif //NETWORK_LAB_PACKET_PRINTER_H
+
+#pragma clang diagnostic pop

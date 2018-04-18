@@ -12,18 +12,10 @@
 #include <sys/socket.h> //socket
 #include <sys/ioctl.h>
 
-int main(int argc, char **argv)
-{
-    //必须接受两个参数，接口名称与需要寻找物理地址的IP地址
-    if (argc < 3) {
-        printf("Usage: ./Program <interface> <ip addr>\n");
-        exit(1);
-    }
-    //参数1-接口名，从这个接口发出ARP请求
-    const char *if_name = argv[1];
-    //参数2-ARP请求的IP地址
-    const char *target_ip_string = argv[2];
+#include "send_arp_request_pcap.h"
 
+void send_arp(char *if_name,char *target_ip_string)
+{
     //构造以太帧头部
     struct ether_header header;
     header.ether_type = htons(ETH_P_ARP);
@@ -112,10 +104,9 @@ int main(int argc, char **argv)
         exit(1);
     }
     else {
-        fprintf(stdout, "Send an ARP broadcast to get mac address who's IP address is %s.\n", target_ip_string);
+        fprintf(stdout, "Send an ARP broadcast to get mac address who's IP address is [%s].\n", target_ip_string);
     }
 
     //关闭接口
     pcap_close(pcap);
-    return 0;
 }

@@ -6,6 +6,10 @@
 #include <stdlib.h>
 #include <getopt.h>
 
+#include "capture.h"
+#include "send_arp_request_pcap.h"
+#include "send_icmp_request_socket.h"
+
 int main(int argc, char **argv)
 {
     //保存flag的数据结构
@@ -44,34 +48,32 @@ int main(int argc, char **argv)
             break;
         case 'm':globalArgs.icmpData = optarg;
             break;
-        case '?':printf("Unknown option\n");
-            exit(0);
+        case '?':exit(0);
         default:printf("Who are you?\n");
         }
     }
     //抓包
     if (globalArgs.isCapture) {
-        printf("Capturing packet...\n");
+        fprintf(stdout, "Capturing packet...\n");
+        capture();
         return 0;
     }
     //发送ARP包，必须包含两个参数，设备名与目标IP
     if (globalArgs.isSendARP) {
-        if (globalArgs.arpDevice && globalArgs.targetIP)
-            printf("Send ARP packet via [%s] to get [%s]'s mac address\n",
-                   globalArgs.arpDevice,
-                   globalArgs.targetIP);
+        if (globalArgs.arpDevice && globalArgs.targetIP) {
+            send_arp(globalArgs.arpDevice, globalArgs.targetIP);
+        }
         else {
-            fprintf(stderr, "Arguments error, please check.\n");
+            fprintf(stderr, "Arguments error. Usage: ./Main --arp --dev <interface> --target <ip>\n");
             exit(0);
         }
         return 0;
     }
     //发送ICMP包，至少包含一个参数IP地址，可选第二个参数，发送数据
     if (globalArgs.isSendICMP) {
-        if (globalArgs.targetIP)
-            printf("Send ICMP packet to [%s] with data [%s]\n",
-                   globalArgs.targetIP,
-                   globalArgs.icmpData);
+        if (globalArgs.targetIP) {
+            send_icmp(globalArgs.targetIP, globalArgs.icmpData);
+        }
         else {
             fprintf(stderr, "Arguments error, please check.\n");
             exit(0);

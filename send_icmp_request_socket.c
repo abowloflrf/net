@@ -15,12 +15,10 @@
 #include <unistd.h>  //getpid
 #include <errno.h>
 
+#include "send_icmp_request_socket.h"
+
 #define BUFSIZE 1500
 
-/// 计算icmp校验和
-/// \param addr icmp报文结构体指针
-/// \param len icmp报文长度，包含至少8位的头部与后面的data
-/// \return
 unsigned short check_sum(unsigned short *addr, int len)
 {
     int nleft = len;
@@ -41,10 +39,6 @@ unsigned short check_sum(unsigned short *addr, int len)
     return answer;
 }
 
-/// 填充icmp报文
-/// \param icmp_sequ
-/// \param msg
-/// \return icmp struct
 struct icmp *fill_icmp_packet(uint16_t icmp_sequ, char *msg)
 {
     struct icmp *icmp;                              //新建icmp报文指针
@@ -61,19 +55,12 @@ struct icmp *fill_icmp_packet(uint16_t icmp_sequ, char *msg)
     return icmp;
 }
 
-int main(int argc, char **argv)
+void send_icmp(char *target_ip_str, char *send_data)
 {
-    //必须接受一个参数，目的IP地址
-    if (argc < 2) {
-        printf("Usage: ./SendIcmpRequestPcap <ip addr>\n");
-        exit(1);
-    }
-    const char *target_ip_str = argv[1];
-
     //获取可选的第二个参数，发送消息
     char *send_msg = "Hello from the other side.";
-    if (argc > 2) {
-        send_msg = argv[2];
+    if (send_data != NULL) {
+        send_msg = send_data;
     }
     size_t a = strlen(send_msg);
     char msg[a + 1];
@@ -120,11 +107,9 @@ int main(int argc, char **argv)
     }
     else {
         //发送成功
-        printf("Send ICMP packet to %s with message: [%s]\n", target_ip_str, msg);
+        printf("Send an ICMP packet to [%s] with message: [%s]\n", target_ip_str, msg);
     }
 
     //关闭socket
     shutdown(sockfd, SHUT_RDWR);
-
-    return 0;
 }

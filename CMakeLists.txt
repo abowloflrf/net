@@ -8,15 +8,16 @@ aux_source_directory(. DIR_MAIN)
 
 #add_executable(SendArpRequestSocket send_arp_request_socket.c)
 
-add_executable(SendArpRequestPcap send_arp_request_pcap.c)
-target_link_libraries(SendArpRequestPcap pcap)
+#add_executable(SendArpRequestPcap send_arp_request_pcap.c)
+#target_link_libraries(SendArpRequestPcap pcap)
 
 #add_executable(SendArpReplyPcap send_arp_reply_pcap.c)
 #target_link_libraries(SendArpReplyPcap pcap)
 
-add_executable(SendIcmpRequestSocket send_icmp_request_socket.c)
+#add_executable(SendIcmpRequestSocket send_icmp_request_socket.c)
 
-add_executable(Capture capture.c device.c packet_printer.c)
-target_link_libraries(Capture pcap)
+#add_executable(Capture capture.c device.c packet_printer.c)
+#target_link_libraries(Capture pcap)
 
-add_executable(Main main.c)
+add_executable(Main main.c capture.c device.c packet_printer.c send_arp_request_pcap.c send_icmp_request_socket.c)
+target_link_libraries(Main pcap)
