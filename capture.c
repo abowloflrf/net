@@ -13,7 +13,7 @@ void capture()
 
     //直接获取默认设备
     dev = get_default_dev();
-    fprintf(stdout, "Using default device: %s\n\n", dev->name);
+    fprintf(stdout, "Capturing packet using default device: %s\n\n", dev->name);
 
     //pcap_open_live:打开一个设备准备抓包
     //参数：0-设备名 1-捕获字节数 2-开启混杂模式 3-连接超时时间 4-错误输出缓冲

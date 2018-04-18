@@ -54,7 +54,6 @@ int main(int argc, char **argv)
     }
     //抓包
     if (globalArgs.isCapture) {
-        fprintf(stdout, "Capturing packet...\n");
         capture();
         return 0;
     }
